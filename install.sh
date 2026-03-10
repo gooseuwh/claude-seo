@@ -7,7 +7,7 @@ set -euo pipefail
 main() {
     SKILL_DIR="${HOME}/.claude/skills/seo"
     AGENT_DIR="${HOME}/.claude/agents"
-    REPO_URL="https://github.com/AgriciDaniel/claude-seo"
+    REPO_URL="https://github.com/gooseuwh/claude-seo"
 
     echo "════════════════════════════════════════"
     echo "║   Claude SEO - Installer             ║"
@@ -16,17 +16,25 @@ main() {
     echo ""
 
     # Check prerequisites
-    command -v python3 >/dev/null 2>&1 || { echo "✗ Python 3 is required but not installed."; exit 1; }
     command -v git >/dev/null 2>&1 || { echo "✗ Git is required but not installed."; exit 1; }
 
-    # Check Python version (3.10+ required)
-    PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-    PYTHON_OK=$(python3 -c 'import sys; print(1 if sys.version_info >= (3, 10) else 0)')
-    if [ "${PYTHON_OK}" = "0" ]; then
-        echo "✗ Python 3.10+ is required but ${PYTHON_VERSION} was found."
-        exit 1
+    # Python is optional — enhances analysis but not required for core skill
+    PYTHON_AVAILABLE=0
+    if command -v python3 >/dev/null 2>&1; then
+        PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+        PYTHON_OK=$(python3 -c 'import sys; print(1 if sys.version_info >= (3, 10) else 0)')
+        if [ "${PYTHON_OK}" = "1" ]; then
+            echo "✓ Python ${PYTHON_VERSION} detected (enhanced mode)"
+            PYTHON_AVAILABLE=1
+        else
+            echo "⚠  Python ${PYTHON_VERSION} found — 3.10+ recommended for enhanced features"
+            echo "   Core SEO analysis will still work using built-in tools."
+        fi
+    else
+        echo "⚠  Python not found — running in core mode (no HTML parsing or screenshots)"
+        echo "   Install Python 3.10+ to enable: fetch_page, parse_html, screenshots, CSV analysis"
+        echo "   https://python.org/"
     fi
-    echo "✓ Python ${PYTHON_VERSION} detected"
 
     # Create directories
     mkdir -p "${SKILL_DIR}"
@@ -86,26 +94,31 @@ main() {
     # Copy requirements.txt to skill dir so users can retry later
     cp "${TEMP_DIR}/claude-seo/requirements.txt" "${SKILL_DIR}/requirements.txt" 2>/dev/null || true
 
-    # Install Python dependencies (venv preferred, --user fallback)
-    echo "→ Installing Python dependencies..."
+    # Install Python dependencies (only if Python available)
     VENV_DIR="${SKILL_DIR}/.venv"
-    if python3 -m venv "${VENV_DIR}" 2>/dev/null; then
-        "${VENV_DIR}/bin/pip" install --quiet -r "${TEMP_DIR}/claude-seo/requirements.txt" 2>/dev/null && \
-            echo "  ✓ Installed in venv at ${VENV_DIR}" || \
-            echo "  ⚠  Venv pip install failed. Run: ${VENV_DIR}/bin/pip install -r ${SKILL_DIR}/requirements.txt"
-    else
-        pip install --quiet --user -r "${TEMP_DIR}/claude-seo/requirements.txt" 2>/dev/null || \
-        echo "  ⚠  Could not auto-install. Run: pip install --user -r ${SKILL_DIR}/requirements.txt"
-    fi
+    if [ "${PYTHON_AVAILABLE}" = "1" ]; then
+        echo "→ Installing Python dependencies..."
+        if python3 -m venv "${VENV_DIR}" 2>/dev/null; then
+            "${VENV_DIR}/bin/pip" install --quiet -r "${TEMP_DIR}/claude-seo/requirements.txt" 2>/dev/null && \
+                echo "  ✓ Installed in venv at ${VENV_DIR}" || \
+                echo "  ⚠  Venv pip install failed. Run: ${VENV_DIR}/bin/pip install -r ${SKILL_DIR}/requirements.txt"
+        else
+            pip3 install --quiet --user -r "${TEMP_DIR}/claude-seo/requirements.txt" 2>/dev/null || \
+            echo "  ⚠  Could not auto-install. Run: pip3 install --user -r ${SKILL_DIR}/requirements.txt"
+        fi
 
-    # Optional: Install Playwright browsers (for screenshot analysis)
-    echo "→ Installing Playwright browsers (optional, for visual analysis)..."
-    if [ -f "${VENV_DIR}/bin/playwright" ]; then
-        "${VENV_DIR}/bin/python" -m playwright install chromium 2>/dev/null || \
-        echo "  ⚠  Playwright install failed. Visual analysis will use WebFetch fallback."
+        # Optional: Install Playwright browsers (for screenshot analysis)
+        echo "→ Installing Playwright browsers (optional, for visual analysis)..."
+        if [ -f "${VENV_DIR}/bin/playwright" ]; then
+            "${VENV_DIR}/bin/python" -m playwright install chromium 2>/dev/null || \
+            echo "  ⚠  Playwright install failed. Visual analysis will use WebFetch fallback."
+        else
+            python3 -m playwright install chromium 2>/dev/null || \
+            echo "  ⚠  Playwright install failed. Visual analysis will use WebFetch fallback."
+        fi
     else
-        python3 -m playwright install chromium 2>/dev/null || \
-        echo "  ⚠  Playwright install failed. Visual analysis will use WebFetch fallback."
+        echo "→ Skipping Python dependencies (Python not available)"
+        echo "  To add later: pip3 install -r ${SKILL_DIR}/requirements.txt"
     fi
 
     echo ""
@@ -115,7 +128,13 @@ main() {
     echo "  1. Start Claude Code:  claude"
     echo "  2. Run commands:       /seo audit https://example.com"
     echo ""
-    echo "Python deps location: ${SKILL_DIR}/requirements.txt"
+    if [ "${PYTHON_AVAILABLE}" = "1" ]; then
+        echo "Mode: Enhanced (Python available — HTML parsing, screenshots, CSV analysis)"
+    else
+        echo "Mode: Core (Python not found — uses built-in WebFetch and file reading)"
+        echo "      Install Python 3.10+ and re-run to enable enhanced features."
+    fi
+    echo ""
     echo "To uninstall: curl -fsSL ${REPO_URL}/raw/main/uninstall.sh | bash"
 }
 

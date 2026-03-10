@@ -47,3 +47,17 @@ screenshots/
 # Temporary analysis files
 *-AUDIT-REPORT.md
 *-ACTION-PLAN.md
+
+# SEO output files — may contain client/competitor data
+FULL-AUDIT-REPORT.md
+ACTION-PLAN.md
+SEO-STRATEGY.md
+COMPETITOR-ANALYSIS.md
+CONTENT-CALENDAR.md
+IMPLEMENTATION-ROADMAP.md
+SITE-STRUCTURE.md
+GEO-ANALYSIS.md
+IMPORT-ANALYSIS.md
+
+# Audit log (hashed API call records)
+audit.log
