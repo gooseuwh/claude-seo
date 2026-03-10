@@ -19,7 +19,7 @@ claude-seo/
     references/                      # On-demand knowledge files
     scripts/                         # Python execution scripts
     hooks/                           # Quality gate hooks
-  skills/                            # 12 specialized sub-skills
+  skills/                            # 13 specialized sub-skills
     seo-audit/SKILL.md              # Full site audit with parallel agents
     seo-page/SKILL.md              # Deep single-page analysis
     seo-technical/SKILL.md         # Technical SEO (8 categories)
@@ -32,6 +32,7 @@ claude-seo/
     seo-programmatic/SKILL.md      # Programmatic SEO at scale
     seo-competitor-pages/SKILL.md  # Competitor comparison pages
     seo-hreflang/SKILL.md         # International SEO / hreflang
+    seo-imports/SKILL.md          # ScreamingFrog + Ahrefs CSV import
   agents/                            # 6 parallel subagents
     seo-technical.md               # Crawlability, indexability, security
     seo-content.md                 # E-E-A-T, readability, thin content
@@ -43,7 +44,7 @@ claude-seo/
     ARCHITECTURE.md                # System design overview
     COMMANDS.md                    # Full command reference
     INSTALLATION.md                # Install guide
-    MCP-INTEGRATION.md            # DataForSEO MCP setup
+    MCP-INTEGRATION.md            # MCP integration guide
     TROUBLESHOOTING.md            # Common issues
 ```
 
@@ -63,6 +64,7 @@ claude-seo/
 | `/seo programmatic` | Programmatic SEO analysis and planning |
 | `/seo competitor-pages` | Competitor comparison page generation |
 | `/seo hreflang <url>` | International SEO / hreflang audit |
+| `/seo imports [path]` | Import ScreamingFrog/Ahrefs CSV exports |
 
 ## Development Rules
 
@@ -79,4 +81,4 @@ claude-seo/
 1. **Progressive Disclosure**: Metadata always loaded, instructions on activation, resources on demand
 2. **Industry Detection**: Auto-detect SaaS, e-commerce, local, publisher, agency
 3. **Parallel Execution**: Full audits spawn 6 subagents simultaneously
-4. **Extension System**: DataForSEO MCP integration for live data
+4. **Data Import**: ScreamingFrog SEO Spider and Ahrefs CSV export analysis
